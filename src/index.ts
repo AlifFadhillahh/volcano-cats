@@ -14,11 +14,13 @@ const CLIENT_URL = process.env.CLIENT_URL ?? "http://localhost:3000";
 // ============================================================
 const app = express();
 
-app.use(cors({
-  origin: [CLIENT_URL, /\.vercel\.app$/],
-  methods: ["GET", "POST"],
-  credentials: true,
-}));
+app.use(
+  cors({
+    origin: [CLIENT_URL, /\.vercel\.app$/],
+    methods: ["GET", "POST"],
+    credentials: true,
+  }),
+);
 
 app.use(express.json());
 
@@ -42,7 +44,8 @@ const gameServer = new Server({
 });
 
 // Register room
-gameServer.define("volcano_cats", VolcanoCatsRoom)
+gameServer
+  .define("volcano_cats", VolcanoCatsRoom)
   .filterBy(["roomId"])
   .sortBy({ clients: 1 }) // join room yang paling sedikit pemainnya
   .enableRealtimeListing();

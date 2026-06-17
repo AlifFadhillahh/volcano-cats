@@ -27,7 +27,13 @@ export function buildDeck(playerCount: number): Card[] {
     if (def.type === "WATER_BUCKET") continue; // dibagi ke pemain dulu
 
     for (let i = 0; i < def.count; i++) {
-      cards.push({ id: uuidv4(), type: def.type, name: def.name, description: def.description, emoji: def.emoji });
+      cards.push({
+        id: uuidv4(),
+        type: def.type,
+        name: def.name,
+        description: def.description,
+        emoji: def.emoji,
+      });
     }
   }
 
@@ -47,7 +53,13 @@ export function buildLavaCats(count: number): Card[] {
 
 export function makeCard(type: CardType): Card {
   const def = getCardDef(type);
-  return { id: uuidv4(), type, name: def.name, description: def.description, emoji: def.emoji };
+  return {
+    id: uuidv4(),
+    type,
+    name: def.name,
+    description: def.description,
+    emoji: def.emoji,
+  };
 }
 
 // ============================================================
@@ -131,7 +143,12 @@ export function setupGame(state: GameState): GameState {
     pendingTurns: 1,
     pendingAction: null,
     peekResult: null,
-    log: [addLog("Game dimulai! Semua pemain mendapat 6 kartu + 1 Water Bucket.", "system")],
+    log: [
+      addLog(
+        "Game dimulai! Semua pemain mendapat 6 kartu + 1 Water Bucket.",
+        "system",
+      ),
+    ],
   };
 }
 
@@ -143,11 +160,18 @@ export function getCurrentPlayer(state: GameState): Player | null {
   return state.players.get(id) ?? null;
 }
 
-export function getNextAliveIndex(state: GameState, fromIndex: number, direction: TurnDirection): number {
+export function getNextAliveIndex(
+  state: GameState,
+  fromIndex: number,
+  direction: TurnDirection,
+): number {
   const total = state.turnOrder.length;
   let idx = (fromIndex + direction + total) % total;
   let attempts = 0;
-  while (!state.players.get(state.turnOrder[idx])?.isAlive && attempts < total) {
+  while (
+    !state.players.get(state.turnOrder[idx])?.isAlive &&
+    attempts < total
+  ) {
     idx = (idx + direction + total) % total;
     attempts++;
   }
@@ -164,7 +188,11 @@ export function advanceTurn(state: GameState): GameState {
   }
 
   // Advance ke pemain berikutnya
-  const nextIndex = getNextAliveIndex(state, state.currentTurnIndex, state.turnDirection);
+  const nextIndex = getNextAliveIndex(
+    state,
+    state.currentTurnIndex,
+    state.turnDirection,
+  );
   return {
     ...state,
     currentTurnIndex: nextIndex,
@@ -177,7 +205,10 @@ export function advanceTurn(state: GameState): GameState {
 // ============================================================
 // DRAW CARD
 // ============================================================
-export function drawCard(state: GameState, playerId: string): {
+export function drawCard(
+  state: GameState,
+  playerId: string,
+): {
   state: GameState;
   drawnCard: Card;
   exploded: boolean;
@@ -203,7 +234,13 @@ export function drawCard(state: GameState, playerId: string): {
           deck: newDeck,
           discardPile: newDiscard,
           players: newPlayers,
-          log: [...state.log, addLog(`${player.username} kena Lava Cat! Tapi Bunker melindungi mereka! 🛡️`, "action")],
+          log: [
+            ...state.log,
+            addLog(
+              `${player.username} kena Lava Cat! Tapi Bunker melindungi mereka! 🛡️`,
+              "action",
+            ),
+          ],
         },
         drawnCard,
         exploded: false,
@@ -211,7 +248,9 @@ export function drawCard(state: GameState, playerId: string): {
     }
 
     // Cek water bucket di tangan
-    const waterBucketIdx = player.hand.findIndex((c) => c.type === "WATER_BUCKET");
+    const waterBucketIdx = player.hand.findIndex(
+      (c) => c.type === "WATER_BUCKET",
+    );
     if (waterBucketIdx !== -1) {
       // Player punya water bucket — akan trigger WATER_BUCKET_PLACE pending action
       const newHand = player.hand.filter((_, i) => i !== waterBucketIdx);
@@ -228,7 +267,13 @@ export function drawCard(state: GameState, playerId: string): {
             initiatorId: playerId,
             data: { lavaCatCard: drawnCard },
           },
-          log: [...state.log, addLog(`${player.username} draw Lava Cat! 🌋 Water Bucket digunakan! Pilih posisi untuk taruh Lava Cat.`, "action")],
+          log: [
+            ...state.log,
+            addLog(
+              `${player.username} draw Lava Cat! 🌋 Water Bucket digunakan! Pilih posisi untuk taruh Lava Cat.`,
+              "action",
+            ),
+          ],
         },
         drawnCard,
         exploded: false,
@@ -248,7 +293,13 @@ export function drawCard(state: GameState, playerId: string): {
       deck: newDeck,
       discardPile: newDiscard,
       players: newPlayers,
-      log: [...state.log, addLog(`${player.username} meledak! 💀 Tidak punya Water Bucket!`, "death")],
+      log: [
+        ...state.log,
+        addLog(
+          `${player.username} meledak! 💀 Tidak punya Water Bucket!`,
+          "death",
+        ),
+      ],
     };
 
     if (isGameOver) {
@@ -286,7 +337,11 @@ export function drawCard(state: GameState, playerId: string): {
 // ============================================================
 // PLACE LAVA CAT BACK (after water bucket)
 // ============================================================
-export function placeLavaCat(state: GameState, lavaCatCard: Card, position: number): GameState {
+export function placeLavaCat(
+  state: GameState,
+  lavaCatCard: Card,
+  position: number,
+): GameState {
   const clampedPos = Math.max(0, Math.min(position, state.deck.length));
   const newDeck = [...state.deck];
   newDeck.splice(clampedPos, 0, lavaCatCard);
@@ -295,7 +350,13 @@ export function placeLavaCat(state: GameState, lavaCatCard: Card, position: numb
     ...state,
     deck: newDeck,
     pendingAction: null,
-    log: [...state.log, addLog(`Lava Cat ditaruh balik di posisi ${clampedPos} dalam deck. 🌋`, "action")],
+    log: [
+      ...state.log,
+      addLog(
+        `Lava Cat ditaruh balik di posisi ${clampedPos} dalam deck. 🌋`,
+        "action",
+      ),
+    ],
   };
 
   return advanceTurn(newState);
@@ -308,7 +369,7 @@ export function playCard(
   state: GameState,
   playerId: string,
   cardId: string,
-  targetId?: string
+  targetId?: string,
 ): GameState {
   const player = state.players.get(playerId)!;
   const cardIdx = player.hand.findIndex((c) => c.id === cardId);
@@ -380,9 +441,15 @@ export function playCard(
 // ============================================================
 // PLAY FREEZE (bisa dimainkan kapan saja sebagai interrupt)
 // ============================================================
-export function playFreeze(state: GameState, playerId: string, freezeCardId: string): GameState {
+export function playFreeze(
+  state: GameState,
+  playerId: string,
+  freezeCardId: string,
+): GameState {
   const player = state.players.get(playerId)!;
-  const cardIdx = player.hand.findIndex((c) => c.id === freezeCardId && c.type === "FREEZE");
+  const cardIdx = player.hand.findIndex(
+    (c) => c.id === freezeCardId && c.type === "FREEZE",
+  );
   if (cardIdx === -1) throw new Error("Tidak punya kartu Freeze!");
 
   const card = player.hand[cardIdx];
@@ -396,7 +463,13 @@ export function playFreeze(state: GameState, playerId: string, freezeCardId: str
     players: newPlayers,
     discardPile: [...state.discardPile, card],
     pendingAction: null,
-    log: [...state.log, addLog(`${player.username} memainkan Freeze! ❄️ Aksi dibatalkan!`, "action")],
+    log: [
+      ...state.log,
+      addLog(
+        `${player.username} memainkan Freeze! ❄️ Aksi dibatalkan!`,
+        "action",
+      ),
+    ],
   };
 }
 
@@ -408,7 +481,7 @@ export function playGang(
   playerId: string,
   cardIds: string[],
   targetId?: string,
-  targetCardId?: string
+  targetCardId?: string,
 ): GameState {
   const player = state.players.get(playerId)!;
 
@@ -423,9 +496,12 @@ export function playGang(
   const count = cards.length;
   if (count < 2) throw new Error("Gang butuh minimal 2 kartu!");
 
-  const isRainbow = count === 5 && new Set(cards.map((c) => c.type)).size === 5
-    && cards.every((c) => isGangCard(c.type));
-  const isSameType = cards.every((c) => c.type === cards[0].type) && isGangCard(cards[0].type);
+  const isRainbow =
+    count === 5 &&
+    new Set(cards.map((c) => c.type)).size === 5 &&
+    cards.every((c) => isGangCard(c.type));
+  const isSameType =
+    cards.every((c) => c.type === cards[0].type) && isGangCard(cards[0].type);
 
   if (!isRainbow && !isSameType) throw new Error("Gang card tidak valid!");
 
@@ -446,7 +522,13 @@ export function playGang(
       newState = {
         ...newState,
         pendingAction: { type: "GANG_RAINBOW_TARGET", initiatorId: playerId },
-        log: [...newState.log, addLog(`${player.username} main Rainbow Gang! 🌈 Pilih target untuk swap tangan!`, "action")],
+        log: [
+          ...newState.log,
+          addLog(
+            `${player.username} main Rainbow Gang! 🌈 Pilih target untuk swap tangan!`,
+            "action",
+          ),
+        ],
       };
     } else {
       newState = executeGangRainbow(newState, playerId, targetId);
@@ -460,7 +542,13 @@ export function playGang(
       newState = {
         ...newState,
         pendingAction: { type: "GANG_TRIPLE_TARGET", initiatorId: playerId },
-        log: [...newState.log, addLog(`${player.username} main Triple Gang! Pilih target dan kartu!`, "action")],
+        log: [
+          ...newState.log,
+          addLog(
+            `${player.username} main Triple Gang! Pilih target dan kartu!`,
+            "action",
+          ),
+        ],
       };
     } else {
       newState = executeGangTriple(newState, playerId, targetId, targetCardId);
@@ -471,7 +559,10 @@ export function playGang(
       newState = {
         ...newState,
         pendingAction: { type: "GANG_PAIR_TARGET", initiatorId: playerId },
-        log: [...newState.log, addLog(`${player.username} main Pair Gang! Pilih target!`, "action")],
+        log: [
+          ...newState.log,
+          addLog(`${player.username} main Pair Gang! Pilih target!`, "action"),
+        ],
       };
     } else {
       newState = executeGangPair(newState, playerId, targetId);
@@ -484,10 +575,15 @@ export function playGang(
 // ============================================================
 // GANG EXECUTIONS
 // ============================================================
-function executeGangPair(state: GameState, initiatorId: string, targetId: string): GameState {
+function executeGangPair(
+  state: GameState,
+  initiatorId: string,
+  targetId: string,
+): GameState {
   const initiator = state.players.get(initiatorId)!;
   const target = state.players.get(targetId)!;
-  if (!target.isAlive || target.hand.length === 0) throw new Error("Target tidak valid!");
+  if (!target.isAlive || target.hand.length === 0)
+    throw new Error("Target tidak valid!");
 
   const randIdx = Math.floor(Math.random() * target.hand.length);
   const stolenCard = target.hand[randIdx];
@@ -502,7 +598,13 @@ function executeGangPair(state: GameState, initiatorId: string, targetId: string
     ...state,
     players: newPlayers,
     pendingAction: null,
-    log: [...state.log, addLog(`${initiator.username} steal 1 kartu random dari ${target.username}! 💸`, "action")],
+    log: [
+      ...state.log,
+      addLog(
+        `${initiator.username} steal 1 kartu random dari ${target.username}! 💸`,
+        "action",
+      ),
+    ],
   };
 }
 
@@ -510,7 +612,7 @@ function executeGangTriple(
   state: GameState,
   initiatorId: string,
   targetId: string,
-  targetCardId: string
+  targetCardId: string,
 ): GameState {
   const initiator = state.players.get(initiatorId)!;
   const target = state.players.get(targetId)!;
@@ -529,7 +631,13 @@ function executeGangTriple(
     ...state,
     players: newPlayers,
     pendingAction: null,
-    log: [...state.log, addLog(`${initiator.username} steal "${stolenCard.name}" dari ${target.username}! 🎯`, "action")],
+    log: [
+      ...state.log,
+      addLog(
+        `${initiator.username} steal "${stolenCard.name}" dari ${target.username}! 🎯`,
+        "action",
+      ),
+    ],
   };
 }
 
@@ -539,23 +647,40 @@ function executeGangQuad(state: GameState, initiatorId: string): GameState {
   const stolenCards: Card[] = [];
 
   for (const [pid, player] of state.players) {
-    if (pid === initiatorId || !player.isAlive || player.hand.length === 0) continue;
+    if (pid === initiatorId || !player.isAlive || player.hand.length === 0)
+      continue;
     const randIdx = Math.floor(Math.random() * player.hand.length);
     stolenCards.push(player.hand[randIdx]);
-    newPlayers.set(pid, { ...player, hand: player.hand.filter((_, i) => i !== randIdx) });
+    newPlayers.set(pid, {
+      ...player,
+      hand: player.hand.filter((_, i) => i !== randIdx),
+    });
   }
 
-  newPlayers.set(initiatorId, { ...initiator, hand: [...initiator.hand, ...stolenCards] });
+  newPlayers.set(initiatorId, {
+    ...initiator,
+    hand: [...initiator.hand, ...stolenCards],
+  });
 
   return {
     ...state,
     players: newPlayers,
     pendingAction: null,
-    log: [...state.log, addLog(`${initiator.username} GANG RAID! Steal dari semua pemain! 🔥`, "action")],
+    log: [
+      ...state.log,
+      addLog(
+        `${initiator.username} GANG RAID! Steal dari semua pemain! 🔥`,
+        "action",
+      ),
+    ],
   };
 }
 
-function executeGangRainbow(state: GameState, initiatorId: string, targetId: string): GameState {
+export function executeGangRainbow(
+  state: GameState,
+  initiatorId: string,
+  targetId: string,
+): GameState {
   const initiator = state.players.get(initiatorId)!;
   const target = state.players.get(targetId)!;
   if (!target.isAlive) throw new Error("Target sudah mati!");
@@ -568,7 +693,13 @@ function executeGangRainbow(state: GameState, initiatorId: string, targetId: str
     ...state,
     players: newPlayers,
     pendingAction: null,
-    log: [...state.log, addLog(`${initiator.username} FULL RIOT! Swap tangan dengan ${target.username}! 🌈`, "action")],
+    log: [
+      ...state.log,
+      addLog(
+        `${initiator.username} FULL RIOT! Swap tangan dengan ${target.username}! 🌈`,
+        "action",
+      ),
+    ],
   };
 }
 
@@ -579,22 +710,35 @@ function applyNapTime(state: GameState, playerId: string): GameState {
   const player = state.players.get(playerId)!;
   return {
     ...advanceTurn(state),
-    log: [...state.log, addLog(`${player.username} main Nap Time — skip giliran! 😴`, "action")],
+    log: [
+      ...state.log,
+      addLog(`${player.username} main Nap Time — skip giliran! 😴`, "action"),
+    ],
   };
 }
 
 function applyEruption(state: GameState, playerId: string): GameState {
   const player = state.players.get(playerId)!;
-  const nextIdx = getNextAliveIndex(state, state.currentTurnIndex, state.turnDirection);
+  const nextIdx = getNextAliveIndex(
+    state,
+    state.currentTurnIndex,
+    state.turnDirection,
+  );
   const nextPlayer = state.players.get(state.turnOrder[nextIdx])!;
 
   // Advance turn ke pemain berikutnya dengan 2 pending turns
   return {
     ...state,
     currentTurnIndex: nextIdx,
-    pendingTurns: (state.pendingTurns - 1) + 2, // sisa turn sebelumnya + 2
+    pendingTurns: state.pendingTurns - 1 + 2, // sisa turn sebelumnya + 2
     pendingAction: null,
-    log: [...state.log, addLog(`${player.username} main Eruption! 🌀 ${nextPlayer.username} harus draw 2 kali!`, "action")],
+    log: [
+      ...state.log,
+      addLog(
+        `${player.username} main Eruption! 🌀 ${nextPlayer.username} harus draw 2 kali!`,
+        "action",
+      ),
+    ],
   };
 }
 
@@ -605,7 +749,13 @@ function applySpyCat(state: GameState, playerId: string): GameState {
   return {
     ...state,
     peekResult: { sessionId: playerId, cards: top3 },
-    log: [...state.log, addLog(`${player.username} main Spy Cat — melihat 3 kartu teratas deck! 🔭`, "action")],
+    log: [
+      ...state.log,
+      addLog(
+        `${player.username} main Spy Cat — melihat 3 kartu teratas deck! 🔭`,
+        "action",
+      ),
+    ],
   };
 }
 
@@ -614,11 +764,21 @@ function applyEarthquake(state: GameState, playerId: string): GameState {
   return {
     ...state,
     deck: shuffle(state.deck),
-    log: [...state.log, addLog(`${player.username} main Earthquake! 🔀 Deck dikocok ulang!`, "action")],
+    log: [
+      ...state.log,
+      addLog(
+        `${player.username} main Earthquake! 🔀 Deck dikocok ulang!`,
+        "action",
+      ),
+    ],
   };
 }
 
-function applyBribe(state: GameState, playerId: string, targetId: string): GameState {
+function applyBribe(
+  state: GameState,
+  playerId: string,
+  targetId: string,
+): GameState {
   const player = state.players.get(playerId)!;
   const target = state.players.get(targetId)!;
   if (!target.isAlive) throw new Error("Target sudah mati!");
@@ -630,13 +790,24 @@ function applyBribe(state: GameState, playerId: string, targetId: string): GameS
       initiatorId: playerId,
       targetId,
     },
-    log: [...state.log, addLog(`${player.username} main Bribe! 🎁 ${target.username} harus kasih 1 kartu!`, "action")],
+    log: [
+      ...state.log,
+      addLog(
+        `${player.username} main Bribe! 🎁 ${target.username} harus kasih 1 kartu!`,
+        "action",
+      ),
+    ],
   };
 }
 
-export function resolveBribe(state: GameState, targetId: string, cardId: string): GameState {
+export function resolveBribe(
+  state: GameState,
+  targetId: string,
+  cardId: string,
+): GameState {
   const pa = state.pendingAction;
-  if (!pa || pa.type !== "BRIBE_WAITING") throw new Error("Tidak ada Bribe aktif!");
+  if (!pa || pa.type !== "BRIBE_WAITING")
+    throw new Error("Tidak ada Bribe aktif!");
 
   const initiator = state.players.get(pa.initiatorId)!;
   const target = state.players.get(targetId)!;
@@ -645,14 +816,26 @@ export function resolveBribe(state: GameState, targetId: string, cardId: string)
 
   const card = target.hand[cardIdx];
   const newPlayers = new Map(state.players);
-  newPlayers.set(targetId, { ...target, hand: target.hand.filter((_, i) => i !== cardIdx) });
-  newPlayers.set(pa.initiatorId, { ...initiator, hand: [...initiator.hand, card] });
+  newPlayers.set(targetId, {
+    ...target,
+    hand: target.hand.filter((_, i) => i !== cardIdx),
+  });
+  newPlayers.set(pa.initiatorId, {
+    ...initiator,
+    hand: [...initiator.hand, card],
+  });
 
   return {
     ...state,
     players: newPlayers,
     pendingAction: null,
-    log: [...state.log, addLog(`${target.username} memberi "${card.name}" ke ${initiator.username}.`, "action")],
+    log: [
+      ...state.log,
+      addLog(
+        `${target.username} memberi "${card.name}" ke ${initiator.username}.`,
+        "action",
+      ),
+    ],
   };
 }
 
@@ -664,11 +847,21 @@ function applyReverse(state: GameState, playerId: string): GameState {
   return {
     ...state,
     turnDirection: newDir,
-    log: [...state.log, addLog(`${player.username} main Reverse! 🔄 Urutan giliran jadi ${dirText}!`, "action")],
+    log: [
+      ...state.log,
+      addLog(
+        `${player.username} main Reverse! 🔄 Urutan giliran jadi ${dirText}!`,
+        "action",
+      ),
+    ],
   };
 }
 
-function applySniper(state: GameState, playerId: string, targetId: string): GameState {
+function applySniper(
+  state: GameState,
+  playerId: string,
+  targetId: string,
+): GameState {
   const player = state.players.get(playerId)!;
   const target = state.players.get(targetId)!;
   if (!target.isAlive) throw new Error("Target sudah mati!");
@@ -678,7 +871,13 @@ function applySniper(state: GameState, playerId: string, targetId: string): Game
 
   return {
     ...result.state,
-    log: [...result.state.log, addLog(`${player.username} Sniper ${target.username}! 🎯 Mereka harus draw sekarang!`, "action")],
+    log: [
+      ...result.state.log,
+      addLog(
+        `${player.username} Sniper ${target.username}! 🎯 Mereka harus draw sekarang!`,
+        "action",
+      ),
+    ],
   };
 }
 
@@ -696,7 +895,13 @@ function applyPeekAndSwap(state: GameState, playerId: string): GameState {
       initiatorId: playerId,
       data: { topCard },
     },
-    log: [...state.log, addLog(`${player.username} main Peek & Swap! 👁️ Melihat kartu teratas deck...`, "action")],
+    log: [
+      ...state.log,
+      addLog(
+        `${player.username} main Peek & Swap! 👁️ Melihat kartu teratas deck...`,
+        "action",
+      ),
+    ],
   };
 }
 
@@ -704,7 +909,7 @@ export function resolvePeekAndSwap(
   state: GameState,
   playerId: string,
   doSwap: boolean,
-  swapCardId?: string
+  swapCardId?: string,
 ): GameState {
   const player = state.players.get(playerId)!;
 
@@ -713,7 +918,10 @@ export function resolvePeekAndSwap(
       ...state,
       pendingAction: null,
       peekResult: null,
-      log: [...state.log, addLog(`${player.username} memilih tidak swap.`, "action")],
+      log: [
+        ...state.log,
+        addLog(`${player.username} memilih tidak swap.`, "action"),
+      ],
     };
   }
 
@@ -736,7 +944,13 @@ export function resolvePeekAndSwap(
     deck: newDeck,
     pendingAction: null,
     peekResult: null,
-    log: [...state.log, addLog(`${player.username} swap "${handCard.name}" dengan kartu teratas deck! 👁️`, "action")],
+    log: [
+      ...state.log,
+      addLog(
+        `${player.username} swap "${handCard.name}" dengan kartu teratas deck! 👁️`,
+        "action",
+      ),
+    ],
   };
 }
 
@@ -750,14 +964,22 @@ function applyBunker(state: GameState, playerId: string): GameState {
   return {
     ...state,
     players: newPlayers,
-    log: [...state.log, addLog(`${player.username} pasang Bunker! 🛡️`, "action")],
+    log: [
+      ...state.log,
+      addLog(`${player.username} pasang Bunker! 🛡️`, "action"),
+    ],
   };
 }
 
-function applyPickpocket(state: GameState, playerId: string, targetId: string): GameState {
+function applyPickpocket(
+  state: GameState,
+  playerId: string,
+  targetId: string,
+): GameState {
   const player = state.players.get(playerId)!;
   const target = state.players.get(targetId)!;
-  if (!target.isAlive || target.hand.length === 0) throw new Error("Target tidak valid!");
+  if (!target.isAlive || target.hand.length === 0)
+    throw new Error("Target tidak valid!");
 
   // Cek bunker target
   if (target.hasBunker) {
@@ -766,7 +988,13 @@ function applyPickpocket(state: GameState, playerId: string, targetId: string): 
     return {
       ...state,
       players: newPlayers,
-      log: [...state.log, addLog(`${player.username} Pickpocket ${target.username} tapi Bunker melindungi! 🛡️`, "action")],
+      log: [
+        ...state.log,
+        addLog(
+          `${player.username} Pickpocket ${target.username} tapi Bunker melindungi! 🛡️`,
+          "action",
+        ),
+      ],
     };
   }
 
@@ -782,7 +1010,13 @@ function applyPickpocket(state: GameState, playerId: string, targetId: string): 
   return {
     ...state,
     players: newPlayers,
-    log: [...state.log, addLog(`${player.username} Pickpocket "${stolenCard.name}" dari ${target.username}! 💸`, "action")],
+    log: [
+      ...state.log,
+      addLog(
+        `${player.username} Pickpocket "${stolenCard.name}" dari ${target.username}! 💸`,
+        "action",
+      ),
+    ],
   };
 }
 
@@ -798,13 +1032,24 @@ function applyFlood(state: GameState, playerId: string): GameState {
       floodDiscarded: [],
       data: { totalAlive: alivePlayers.length },
     },
-    log: [...state.log, addLog(`${player.username} main Flood! 🌊 Semua harus buang 1 kartu!`, "action")],
+    log: [
+      ...state.log,
+      addLog(
+        `${player.username} main Flood! 🌊 Semua harus buang 1 kartu!`,
+        "action",
+      ),
+    ],
   };
 }
 
-export function resolveFloodDiscard(state: GameState, playerId: string, cardId: string): GameState {
+export function resolveFloodDiscard(
+  state: GameState,
+  playerId: string,
+  cardId: string,
+): GameState {
   const pa = state.pendingAction;
-  if (!pa || pa.type !== "FLOOD_WAITING") throw new Error("Tidak ada Flood aktif!");
+  if (!pa || pa.type !== "FLOOD_WAITING")
+    throw new Error("Tidak ada Flood aktif!");
 
   const player = state.players.get(playerId)!;
   const cardIdx = player.hand.findIndex((c) => c.id === cardId);
@@ -812,7 +1057,10 @@ export function resolveFloodDiscard(state: GameState, playerId: string, cardId: 
 
   const card = player.hand[cardIdx];
   const newPlayers = new Map(state.players);
-  newPlayers.set(playerId, { ...player, hand: player.hand.filter((_, i) => i !== cardIdx) });
+  newPlayers.set(playerId, {
+    ...player,
+    hand: player.hand.filter((_, i) => i !== cardIdx),
+  });
 
   const floodDiscarded = [...(pa.floodDiscarded ?? []), playerId];
   const totalAlive = (pa.data?.totalAlive as number) ?? 0;
@@ -822,7 +1070,10 @@ export function resolveFloodDiscard(state: GameState, playerId: string, cardId: 
     players: newPlayers,
     discardPile: [...state.discardPile, card],
     pendingAction: { ...pa, floodDiscarded },
-    log: [...state.log, addLog(`${player.username} buang "${card.name}" karena Flood.`, "action")],
+    log: [
+      ...state.log,
+      addLog(`${player.username} buang "${card.name}" karena Flood.`, "action"),
+    ],
   };
 
   // Semua sudah buang
@@ -844,11 +1095,21 @@ function applyTimeWarp(state: GameState, playerId: string): GameState {
       initiatorId: playerId,
       data: { isTimeWarp: true },
     },
-    log: [...state.log, addLog(`${player.username} main Time Warp! 🪄 Pilih kartu dari discard pile!`, "action")],
+    log: [
+      ...state.log,
+      addLog(
+        `${player.username} main Time Warp! 🪄 Pilih kartu dari discard pile!`,
+        "action",
+      ),
+    ],
   };
 }
 
-export function resolveTimeWarp(state: GameState, playerId: string, cardId: string): GameState {
+export function resolveTimeWarp(
+  state: GameState,
+  playerId: string,
+  cardId: string,
+): GameState {
   const player = state.players.get(playerId)!;
   const cardIdx = state.discardPile.findIndex((c) => c.id === cardId);
   if (cardIdx === -1) throw new Error("Kartu tidak ada di discard pile!");
@@ -863,11 +1124,21 @@ export function resolveTimeWarp(state: GameState, playerId: string, cardId: stri
     players: newPlayers,
     discardPile: newDiscard,
     pendingAction: null,
-    log: [...state.log, addLog(`${player.username} ambil "${card.name}" dari discard pile! 🪄`, "action")],
+    log: [
+      ...state.log,
+      addLog(
+        `${player.username} ambil "${card.name}" dari discard pile! 🪄`,
+        "action",
+      ),
+    ],
   };
 }
 
-function applyLockdown(state: GameState, playerId: string, targetId: string): GameState {
+function applyLockdown(
+  state: GameState,
+  playerId: string,
+  targetId: string,
+): GameState {
   const player = state.players.get(playerId)!;
   const target = state.players.get(targetId)!;
   if (!target.isAlive) throw new Error("Target sudah mati!");
@@ -879,7 +1150,13 @@ function applyLockdown(state: GameState, playerId: string, targetId: string): Ga
     return {
       ...state,
       players: newPlayers,
-      log: [...state.log, addLog(`${player.username} Lockdown ${target.username} tapi Bunker melindungi! 🛡️`, "action")],
+      log: [
+        ...state.log,
+        addLog(
+          `${player.username} Lockdown ${target.username} tapi Bunker melindungi! 🛡️`,
+          "action",
+        ),
+      ],
     };
   }
 
@@ -889,14 +1166,24 @@ function applyLockdown(state: GameState, playerId: string, targetId: string): Ga
   return {
     ...state,
     players: newPlayers,
-    log: [...state.log, addLog(`${player.username} Lockdown ${target.username}! 🔒 Giliran berikutnya mereka tidak bisa main kartu!`, "action")],
+    log: [
+      ...state.log,
+      addLog(
+        `${player.username} Lockdown ${target.username}! 🔒 Giliran berikutnya mereka tidak bisa main kartu!`,
+        "action",
+      ),
+    ],
   };
 }
 
 // ============================================================
 // VALIDATE ACTION
 // ============================================================
-export function validatePlayCard(state: GameState, playerId: string, cardId: string): void {
+export function validatePlayCard(
+  state: GameState,
+  playerId: string,
+  cardId: string,
+): void {
   if (state.status !== "playing") throw new Error("Game belum mulai!");
   if (state.pendingAction && state.pendingAction.type !== "FREEZE_WINDOW")
     throw new Error("Ada aksi yang menunggu penyelesaian!");
@@ -906,18 +1193,25 @@ export function validatePlayCard(state: GameState, playerId: string, cardId: str
     throw new Error("Bukan giliran kamu!");
 
   const player = state.players.get(playerId)!;
-  if (player.isLocked) throw new Error("Kamu terkena Lockdown! Tidak bisa main kartu giliran ini.");
+  if (player.isLocked)
+    throw new Error(
+      "Kamu terkena Lockdown! Tidak bisa main kartu giliran ini.",
+    );
 
   const card = player.hand.find((c) => c.id === cardId);
   if (!card) throw new Error("Kartu tidak ditemukan!");
   if (card.type === "LAVA_CAT") throw new Error("Tidak bisa main Lava Cat!");
-  if (card.type === "WATER_BUCKET") throw new Error("Water Bucket hanya otomatis saat draw Lava Cat!");
+  if (card.type === "WATER_BUCKET")
+    throw new Error("Water Bucket hanya otomatis saat draw Lava Cat!");
 }
 
 // ============================================================
 // SERIALIZE STATE FOR CLIENT
 // ============================================================
-export function serializeForClient(state: GameState, viewerId?: string): ClientGameState {
+export function serializeForClient(
+  state: GameState,
+  viewerId?: string,
+): ClientGameState {
   const players: ClientPlayer[] = state.turnOrder.map((pid) => {
     const p = state.players.get(pid)!;
     return {
