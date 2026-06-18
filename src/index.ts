@@ -3,7 +3,7 @@ import cors from "cors";
 import { createServer } from "http";
 import { Server } from "@colyseus/core";
 import { WebSocketTransport } from "@colyseus/ws-transport";
-// import { monitor } from "@colyseus/monitor";
+import { monitor } from "@colyseus/monitor";
 import { VolcanoCatsRoom } from "./rooms/VolcanoCatsRoom";
 
 const PORT = parseInt(process.env.PORT ?? "3001", 10);
@@ -30,9 +30,9 @@ app.get("/health", (_req, res) => {
 });
 
 // Colyseus monitor (dev only)
-// if (process.env.NODE_ENV !== "production") {
-//   app.use("/colyseus", monitor());
-// }
+if (process.env.NODE_ENV !== "production") {
+  app.use("/colyseus", monitor());
+}
 
 // ============================================================
 // COLYSEUS SERVER
